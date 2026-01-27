@@ -1,13 +1,18 @@
+if (typeof TWINK_NAME_START === 'undefined') {
+    Chat.log("§c[✖] Ошибка: Настройки не загружены!");
+    Chat.log("§7Запустите локальный файл с настройками");
+    throw "Stop: No settings";
+}
+
 var CHECK_TIME = 60;
 var DELAY_BETWEEN_COMMANDS = 20;
-
-var SCRIPT_RUNNING_FLAG = "MONEY_SCRIPT_RUNNING";
+var SCRIPT_RUNNING_FLAG = "MONEY_SCRIPT_RUNNING_FENIX";
 var wasRunning = GlobalVars.getBoolean(SCRIPT_RUNNING_FLAG);
 
 if (wasRunning) {
     GlobalVars.putBoolean(SCRIPT_RUNNING_FLAG, false);
-    var alreadySent = GlobalVars.getString("ALREADY_SENT") || "";
-    var sessionSent = GlobalVars.getString("SESSION_SENT") || "";
+    var alreadySent = GlobalVars.getString("FENIX_ALREADY_SENT") || "";
+    var sessionSent = GlobalVars.getString("FENIX_SESSION_SENT") || "";
     var totalCount = alreadySent.split(",").filter(function(n) { return n.trim() !== ""; }).length;
     var sessionCount = sessionSent.split(",").filter(function(n) { return n.trim() !== ""; }).length;
     
@@ -29,17 +34,15 @@ if (wasRunning) {
     Chat.log("§fРестарт = запуск");
     Chat.log("§c╚════════════════╝");
     
-    GlobalVars.putString("SESSION_SENT", "");
+    GlobalVars.putString("FENIX_SESSION_SENT", "");
     throw "Stop";
-} 
-// --- ЗАПУСК СКРИПТА ---
-else {
+} else {
     GlobalVars.putBoolean(SCRIPT_RUNNING_FLAG, true);
     var running = true;
     var sentPlayers = [];
     var processingPlayers = {};
-    var alreadySent = GlobalVars.getString("ALREADY_SENT") || "";
-    GlobalVars.putString("SESSION_SENT", "");
+    var alreadySent = GlobalVars.getString("FENIX_ALREADY_SENT") || "";
+    GlobalVars.putString("FENIX_SESSION_SENT", "");
     
     Chat.log("§a╔════════════════╗");
     Chat.log("§a║ ЗАПУСК СКРИПТА║");
@@ -68,39 +71,33 @@ while (running) {
         var name = player.getName();
         name = name.replace(/§[0-9a-fk-or]/g, '');
         
-        // Проверяем подходит ли ник
         if (name.startsWith(TWINK_NAME_START)) {
             var alreadySentList = alreadySent.split(",");
             var sentEver = alreadySentList.indexOf(name) !== -1;
             var isProcessing = processingPlayers[name];
             
-            // Если НЕ отправляли и НЕ обрабатываем сейчас
             if (!sentEver && !isProcessing) {
                 Chat.log("§a[💰] Найден: " + name);
-                processingPlayers[name] = true; // БЛОКИРУЕМ сразу
+                processingPlayers[name] = true;
                 
                 try {
-                    // ПЕРВАЯ команда /pay
                     Chat.say("/pay " + name + " " + PAY_AMOUNT);
                     Client.waitTick(DELAY_BETWEEN_COMMANDS);
                     
                     if (!running) break;
                     
-                    // ВТОРАЯ команда /pay
                     Chat.say("/pay " + name + " " + PAY_AMOUNT);
-                    Client.waitTick(80); // Ждем завершения
+                    Client.waitTick(80);
                     
-                    // Сохраняем факт отправки
                     sentPlayers.push(name);
                     alreadySent += name + ",";
-                    GlobalVars.putString("ALREADY_SENT", alreadySent);
+                    GlobalVars.putString("FENIX_ALREADY_SENT", alreadySent);
                     
-                    var sessionSent = GlobalVars.getString("SESSION_SENT") || "";
+                    var sessionSent = GlobalVars.getString("FENIX_SESSION_SENT") || "";
                     sessionSent += name + ",";
-                    GlobalVars.putString("SESSION_SENT", sessionSent);
+                    GlobalVars.putString("FENIX_SESSION_SENT", sessionSent);
                     
                     Chat.log("§a[✅] Отправлено " + name);
-                    
                     Client.waitTick(150);
                     
                 } catch(e) {
@@ -108,21 +105,19 @@ while (running) {
                 }
                 
                 foundNew = true;
-                break; // Выходим из цикла по игрокам
+                break;
             }
         }
     }
     
-    // Если никого не нашли - ждем
     if (!foundNew) {
         Client.waitTick(CHECK_TIME);
     }
 }
 
-// --- ЗАВЕРШЕНИЕ ---
 GlobalVars.putBoolean(SCRIPT_RUNNING_FLAG, false);
-var alreadySentFinal = GlobalVars.getString("ALREADY_SENT") || "";
-var sessionSentFinal = GlobalVars.getString("SESSION_SENT") || "";
+var alreadySentFinal = GlobalVars.getString("FENIX_ALREADY_SENT") || "";
+var sessionSentFinal = GlobalVars.getString("FENIX_SESSION_SENT") || "";
 var totalCount = alreadySentFinal.split(",").filter(function(n) { return n.trim() !== ""; }).length;
 var sessionCount = sessionSentFinal.split(",").filter(function(n) { return n.trim() !== ""; }).length;
 
@@ -143,4 +138,4 @@ if (allSent.length > 0) {
 Chat.log("§c╠════════════════╣");
 Chat.log("§fРестарт = запуск");
 Chat.log("§c╚════════════════╝");
-GlobalVars.putString("SESSION_SENT", "");
+GlobalVars.putString("FENIX_SESSION_SENT", "");
